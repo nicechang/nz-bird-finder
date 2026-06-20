@@ -72,6 +72,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusTitle = document.getElementById('status-title');
   const statusDesc = document.getElementById('status-desc');
 
+  // --- AI Scan Modal Elements & State ---
+  let detectedBirds = [];
+  const aiScanModal = document.getElementById('ai-scan-modal');
+  const aiAddBirdBtn = document.getElementById('ai-add-bird-btn');
+  const closeScanModalBtn = document.getElementById('close-scan-modal-btn');
+  const cancelScanResultsBtn = document.getElementById('cancel-scan-results-btn');
+  const saveScanResultsBtn = document.getElementById('save-scan-results-btn');
+  const saveResultsBtnText = document.getElementById('save-results-btn-text');
+  const scanUploadSection = document.getElementById('scan-upload-section');
+  const scanLoadingSection = document.getElementById('scan-loading-section');
+  const scanResultSection = document.getElementById('scan-result-section');
+  const scanDropZone = document.getElementById('scan-drop-zone');
+  const scanImageInput = document.getElementById('scan-image-input');
+  const scanResultListContainer = document.getElementById('scan-result-list-container');
+
   // --- Initialize Lucide Icons ---
   lucide.createIcons();
 
@@ -911,5 +926,312 @@ Analyze the image (if provided) and description to identify the New Zealand bird
       sightingsList.innerHTML = `<li class="ebird-sighting-item" style="color: var(--danger);">관측지 조회 실패: ${err.message}</li>`;
     }
   }
+
+  // --- AI Scan Modal Event Listeners & Handlers ---
+  aiAddBirdBtn.addEventListener('click', () => {
+    // Check API Key
+    const apiKey = localStorage.getItem('nz_birds_api_key');
+    if (!apiKey) {
+      alert('설정(Settings) 탭에서 Gemini API Key를 먼저 설정해 주세요.');
+      const settingsTabBtn = document.querySelector('.tab-btn[data-tab="settings"]');
+      if (settingsTabBtn) settingsTabBtn.click();
+      return;
+    }
+    
+    resetScanModal();
+    aiScanModal.classList.add('active');
+  });
+
+  closeScanModalBtn.addEventListener('click', closeScanModal);
+
+  function closeScanModal() {
+    aiScanModal.classList.remove('active');
+    resetScanModal();
+  }
+
+  function resetScanModal() {
+    scanImageInput.value = '';
+    detectedBirds = [];
+    scanUploadSection.classList.remove('hidden');
+    scanLoadingSection.classList.add('hidden');
+    scanResultSection.classList.add('hidden');
+    scanResultListContainer.innerHTML = '';
+  }
+
+  // Cancel/retry results
+  cancelScanResultsBtn.addEventListener('click', () => {
+    resetScanModal();
+  });
+
+  // Drag & drop highlight for Scan Dropzone
+  ['dragenter', 'dragover'].forEach(eventName => {
+    scanDropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      scanDropZone.classList.add('dragover');
+    }, false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    scanDropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      scanDropZone.classList.remove('dragover');
+    }, false);
+  });
+
+  scanDropZone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    handleScanImageFiles(dt.files);
+  });
+
+  scanDropZone.addEventListener('click', () => {
+    scanImageInput.click();
+  });
+
+  scanImageInput.addEventListener('change', (e) => {
+    handleScanImageFiles(e.target.files);
+  });
+
+  function handleScanImageFiles(files) {
+    if (files.length === 0) return;
+    const file = files[0];
+    
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일만 업로드할 수 있습니다.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const base64Data = e.target.result.split(',')[1];
+      const mimeType = file.type;
+      
+      // Start loading state
+      scanUploadSection.classList.add('hidden');
+      scanLoadingSection.classList.remove('hidden');
+      
+      const apiKey = localStorage.getItem('nz_birds_api_key');
+      const model = localStorage.getItem('nz_birds_model') || 'gemini-2.5-flash';
+      
+      try {
+        const result = await queryGeminiForBookParsing(apiKey, model, base64Data, mimeType);
+        
+        if (result && result.birds && result.birds.length > 0) {
+          detectedBirds = result.birds;
+          renderScanResults();
+        } else {
+          throw new Error("사진 속에서 조류 정보를 검출하지 못했거나 API가 올바른 목록 형식을 제공하지 않았습니다.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert(`책 페이지 분석 실패: ${err.message}`);
+        resetScanModal();
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Call Gemini API to parse book content
+  async function queryGeminiForBookParsing(apiKey, model, imageBase64, mimeType) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+    const systemPrompt = `You are an expert ornithologist and document scanner specializing in New Zealand birds.
+Your task is to analyze the provided image of a book page, extract details about EVERY bird species featured in the image, and output them in a structured JSON format.
+
+Instructions:
+1. Detect all bird species present in the text or images. For each bird, create an entry in the response array.
+2. For each bird, identify: English Name, Māori Name (if any), Scientific Name, and Size.
+3. Translate and summarize each bird's physical description (외모 묘사 및 특징), habitat (서식지), and typical behavior (행동 패턴) into Korean.
+4. Try to locate any page numbers or book title text in the image. Format it as 'Book Title p.XX' or 'p.XX' if found, otherwise write '책 사진 분석'. Use the same source for birds extracted from the same page.
+5. STRICT Korean Name Rule:
+   - Provide the Korean name only if it is an officially recognized biological name or a widely accepted common name in Korea.
+   - If there is NO official Korean name, set 'koreanName' to '공식 한국어 이름 없음'.
+   - Do NOT translate literally.
+
+All descriptive fields (description, habitat, behavior, sourceBookPage) must be written in Korean.
+Return a JSON object containing an array of these birds.`;
+
+    const userPromptText = `Analyze the uploaded book page image. Extract details for all birds found on it.`;
+
+    const contentsPart = {
+      parts: [
+        { text: `${systemPrompt}\n\n${userPromptText}` }
+      ]
+    };
+
+    contentsPart.parts.push({
+      inlineData: {
+        mimeType: mimeType,
+        data: imageBase64
+      }
+    });
+
+    const responseSchema = {
+      type: "OBJECT",
+      properties: {
+        birds: {
+          type: "ARRAY",
+          description: "List of all bird species identified in the book page.",
+          items: {
+            type: "OBJECT",
+            properties: {
+              englishName: { type: "STRING" },
+              maoriName: { type: "STRING" },
+              scientificName: { type: "STRING" },
+              size: { type: "STRING" },
+              koreanName: { type: "STRING" },
+              description: { type: "STRING" },
+              habitat: { type: "STRING" },
+              behavior: { type: "STRING" },
+              sourceBookPage: { type: "STRING" }
+            },
+            required: ["englishName", "maoriName", "scientificName", "size", "koreanName", "description", "habitat", "behavior", "sourceBookPage"]
+          }
+        }
+      },
+      required: ["birds"]
+    };
+
+    const requestBody = {
+      contents: [contentsPart],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: responseSchema
+      }
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`API returned status ${response.status}: ${errText}`);
+    }
+
+    const resJson = await response.json();
+    
+    if (resJson.candidates && resJson.candidates[0] && resJson.candidates[0].content && resJson.candidates[0].content.parts[0]) {
+      const responseText = resJson.candidates[0].content.parts[0].text;
+      return JSON.parse(responseText);
+    } else {
+      throw new Error("Gemini API로부터 잘못된 응답 포맷을 받았습니다.");
+    }
+  }
+
+  // Render scan results checklist
+  function renderScanResults() {
+    scanLoadingSection.classList.add('hidden');
+    scanResultSection.classList.remove('hidden');
+    scanResultListContainer.innerHTML = '';
+
+    detectedBirds.forEach((bird, idx) => {
+      const hasKo = bird.koreanName && bird.koreanName.trim() !== '' && bird.koreanName !== '공식 한국어 이름 없음';
+      const koBadgeClass = hasKo ? 'scan-bird-ko-badge' : 'scan-bird-ko-badge none';
+      const koBadgeText = hasKo ? bird.koreanName : '한국어 이름 없음';
+
+      const item = document.createElement('div');
+      item.className = 'scan-bird-item selected';
+      item.dataset.index = idx;
+      
+      item.innerHTML = `
+        <div class="scan-bird-checkbox-wrapper">
+          <input type="checkbox" class="scan-bird-checkbox" checked id="checkbox-${idx}">
+        </div>
+        <div class="scan-bird-content">
+          <div class="scan-bird-header">
+            <div class="scan-bird-names">
+              <h4>
+                <span>${bird.englishName}</span>
+                ${bird.maoriName ? `<span class="maori">(${bird.maoriName})</span>` : ''}
+              </h4>
+              <p class="scan-bird-sci">${bird.scientificName || '학명 미상'}</p>
+            </div>
+            <span class="${koBadgeClass}">${koBadgeText}</span>
+          </div>
+          <div class="scan-bird-body">
+            ${bird.description}
+          </div>
+          <div class="scan-bird-meta">
+            <span><i data-lucide="book"></i> ${bird.sourceBookPage || '책 사진 분석'}</span>
+            <span><i data-lucide="info"></i> ${bird.size || '크기 정보 없음'}</span>
+          </div>
+        </div>
+      `;
+
+      // Click event for the whole item card (toggling checkbox)
+      item.addEventListener('click', (e) => {
+        const checkbox = item.querySelector('.scan-bird-checkbox');
+        if (e.target !== checkbox) {
+          checkbox.checked = !checkbox.checked;
+        }
+        
+        // Toggle selected styling
+        if (checkbox.checked) {
+          item.classList.add('selected');
+        } else {
+          item.classList.remove('selected');
+        }
+        updateSaveBtnCount();
+      });
+
+      scanResultListContainer.appendChild(item);
+    });
+
+    lucide.createIcons();
+    updateSaveBtnCount();
+  }
+
+  function updateSaveBtnCount() {
+    const checkboxes = scanResultListContainer.querySelectorAll('.scan-bird-checkbox:checked');
+    saveResultsBtnText.textContent = `선택한 ${checkboxes.length}마리 새 도감에 추가`;
+    saveScanResultsBtn.disabled = checkboxes.length === 0;
+  }
+
+  // Save selected results to database
+  saveScanResultsBtn.addEventListener('click', () => {
+    const checkboxes = scanResultListContainer.querySelectorAll('.scan-bird-checkbox:checked');
+    if (checkboxes.length === 0) return;
+
+    let addedCount = 0;
+    checkboxes.forEach(cb => {
+      const idx = cb.id.split('-')[1];
+      const parsedBird = detectedBirds[idx];
+      
+      if (parsedBird) {
+        // Build new bird model
+        const newBird = {
+          id: 'nz-bird-' + Date.now() + '-' + idx,
+          englishName: parsedBird.englishName.trim(),
+          maoriName: parsedBird.maoriName ? parsedBird.maoriName.trim() : '',
+          scientificName: parsedBird.scientificName ? parsedBird.scientificName.trim() : '',
+          size: parsedBird.size ? parsedBird.size.trim() : '',
+          koreanName: parsedBird.koreanName ? parsedBird.koreanName.trim() : '공식 한국어 이름 없음',
+          description: parsedBird.description.trim(),
+          habitat: parsedBird.habitat ? parsedBird.habitat.trim() : '',
+          behavior: parsedBird.behavior ? parsedBird.behavior.trim() : '',
+          sourceBookPage: parsedBird.sourceBookPage ? parsedBird.sourceBookPage.trim() : '책 사진 분석'
+        };
+
+        // Merge or append to database
+        const index = birds.findIndex(b => b.englishName.toLowerCase() === newBird.englishName.toLowerCase());
+        if (index !== -1) {
+          birds[index] = { ...birds[index], ...newBird };
+        } else {
+          birds.push(newBird);
+        }
+        addedCount++;
+      }
+    });
+
+    if (addedCount > 0) {
+      saveToStorage();
+      updateBookUI();
+      alert(`${addedCount}종의 새 정보가 나의 도감에 추가/업데이트되었습니다.`);
+    }
+
+    closeScanModal();
+  });
 
 });

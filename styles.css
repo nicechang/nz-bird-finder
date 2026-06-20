@@ -1412,4 +1412,132 @@ input::placeholder {
   font-size: 10.5px;
 }
 
+/* ================= AI BOOK SCAN RESULTS ================= */
+.scan-result-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 6px;
+  margin-top: 12px;
+}
+
+.scan-bird-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+
+.scan-bird-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(45, 158, 107, 0.35);
+}
+
+.scan-bird-item.selected {
+  background: rgba(45, 158, 107, 0.08);
+  border-color: var(--primary);
+  box-shadow: 0 4px 15px rgba(45, 158, 107, 0.15);
+}
+
+.scan-bird-checkbox-wrapper {
+  padding-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scan-bird-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.scan-bird-content {
+  flex-grow: 1;
+}
+
+.scan-bird-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.scan-bird-names h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scan-bird-names .maori {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.scan-bird-sci {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.scan-bird-ko-badge {
+  font-size: 10.5px;
+  background: rgba(229, 173, 35, 0.12);
+  color: var(--accent);
+  border: 1px solid rgba(229, 173, 35, 0.25);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.scan-bird-ko-badge.none {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+
+.scan-bird-body {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.scan-bird-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 6px;
+}
+
+.scan-bird-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.scan-bird-meta svg {
+  width: 12px;
+  height: 12px;
+}
+
+
 

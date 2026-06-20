@@ -238,6 +238,10 @@
               <i data-lucide="download"></i>
               <span>내보내기</span>
             </button>
+            <button class="btn btn-primary" id="ai-add-bird-btn" style="background: linear-gradient(135deg, var(--primary) 0%, #15803d 100%); border: none;">
+              <i data-lucide="sparkles"></i>
+              <span>AI 책 스캔 등록</span>
+            </button>
             <button class="btn btn-primary" id="add-bird-btn">
               <i data-lucide="plus"></i>
               <span>도감 등록</span>
@@ -400,6 +404,58 @@
           <button type="submit" class="btn btn-primary" id="save-bird-btn">도감 저장</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ================= AI BOOK SCAN MODAL ================= -->
+  <div class="modal-overlay" id="ai-scan-modal">
+    <div class="modal-card" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="sparkles" style="color: var(--accent);"></i>
+          <span>AI 책 스캔 도감 등록</span>
+        </h3>
+        <button class="close-btn" id="close-scan-modal-btn">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      
+      <!-- 1. Upload Section -->
+      <div id="scan-upload-section">
+        <div class="upload-zone" id="scan-drop-zone">
+          <input type="file" id="scan-image-input" accept="image/*" class="file-input">
+          <div class="upload-prompt">
+            <i data-lucide="camera" class="upload-icon" style="color: var(--accent); margin-bottom: 8px;"></i>
+            <p class="upload-main-text" style="font-size: 15px;">조류 도감 책 페이지 사진 업로드</p>
+            <p class="upload-sub-text" style="margin-top: 4px;">여러 종류의 새 정보가 페이지에 포함되어 있어도 AI가 모두 자동으로 식별해 냅니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Loading Section -->
+      <div id="scan-loading-section" class="hidden">
+        <div class="spinner-container" style="margin: 40px auto 20px;">
+          <div class="double-bounce1" style="background-color: var(--accent);"></div>
+          <div class="double-bounce2" style="background-color: var(--primary);"></div>
+        </div>
+        <h3 style="text-align: center; font-size: 16px; margin-bottom: 6px;">Gemini AI가 책 내용을 분석하고 있습니다...</h3>
+        <p class="loader-status-text" style="text-align: center; font-size: 13px; color: var(--text-muted); line-height: 1.5; padding: 0 20px;">사진 내의 영어/마오리/학명/한국어 이름, 특징, 서식지 등 모든 정보를 추출하여 정돈 중입니다. 잠시만 기다려 주세요 (약 5~10초 소요)</p>
+      </div>
+
+      <!-- 3. Result List Section -->
+      <div id="scan-result-section" class="hidden">
+        <p class="section-subtitle" style="margin-bottom: 16px;">AI 분석 결과 다음과 같은 새들이 발견되었습니다. 등록할 새들을 선택해 주세요.</p>
+        <div class="scan-result-list" id="scan-result-list-container">
+          <!-- Dynamically populated checklist of birds -->
+        </div>
+        <div class="modal-footer" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+          <button type="button" class="btn btn-secondary" id="cancel-scan-results-btn">다시 업로드</button>
+          <button type="button" class="btn btn-primary" id="save-scan-results-btn">
+            <i data-lucide="plus"></i>
+            <span id="save-results-btn-text">선택한 새 도감에 추가</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
