@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NZ Bird Finder | 뉴질랜드 새 도감 & 검색기</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Lucide Icons (Font Awesome alternative, lightweight) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Background decorative glows -->
+  <div class="glow-bg glow-1"></div>
+  <div class="glow-bg glow-2"></div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <i data-lucide="bird"></i>
+        </div>
+        <div class="logo-text">
+          <h1>NZ Bird Finder</h1>
+          <p>뉴질랜드 새 도감 & AI 검색기</p>
+        </div>
+      </div>
+      
+      <!-- Tab Navigation -->
+      <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="finder">
+          <i data-lucide="search"></i>
+          <span>새 찾기</span>
+        </button>
+        <button class="tab-btn" data-tab="my-book">
+          <i data-lucide="book-open"></i>
+          <span>나의 도감</span>
+        </button>
+        <button class="tab-btn" data-tab="settings">
+          <i data-lucide="settings"></i>
+          <span>설정</span>
+        </button>
+      </nav>
+    </header>
+
+    <main class="app-main">
+      
+      <!-- ================= FINDER TAB ================= -->
+      <section id="tab-finder" class="tab-content active">
+        <div class="finder-grid">
+          
+          <!-- Input Side -->
+          <div class="finder-input-card card">
+            <h2 class="section-title">
+              <i data-lucide="sparkles"></i>
+              <span>새 탐색하기</span>
+            </h2>
+            <p class="section-subtitle">새의 생김새를 설명하거나 사진을 찍어 올려주세요. Gemini AI가 도감 정보와 인터넷 지식을 활용해 찾아줍니다.</p>
+
+            <form id="search-form">
+              <!-- Image Upload Zone -->
+              <div class="form-group">
+                <label class="form-label">새 사진 올리기 (선택)</label>
+                <div class="upload-zone" id="drop-zone">
+                  <input type="file" id="image-input" accept="image/*" class="file-input">
+                  <div class="upload-prompt" id="upload-prompt">
+                    <i data-lucide="camera" class="upload-icon"></i>
+                    <p class="upload-main-text">여기에 이미지를 드래그하거나 클릭하여 업로드</p>
+                    <p class="upload-sub-text">카메라 촬영 또는 새 사진 선택</p>
+                  </div>
+                  <div class="upload-preview hidden" id="upload-preview-container">
+                    <img id="image-preview" src="" alt="새 사진 미리보기">
+                    <button type="button" class="remove-img-btn" id="remove-image-btn">
+                      <i data-lucide="x"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Description input -->
+              <div class="form-group">
+                <label for="desc-input" class="form-label">새의 생김새 또는 행동 설명</label>
+                <textarea id="desc-input" placeholder="예: 머리가 노란색이고 몸집이 아주 작은 새였어. 날개를 빠르게 파닥거리며 정지 비행을 하기도 하더라." rows="4"></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block" id="search-submit-btn">
+                <i data-lucide="search"></i>
+                <span>검색 시작하기</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Results Side -->
+          <div class="finder-result-card card">
+            <h2 class="section-title">
+              <i data-lucide="layout-list"></i>
+              <span>분석 및 매칭 결과</span>
+            </h2>
+            
+            <!-- Default Empty State -->
+            <div class="empty-state" id="result-empty-state">
+              <i data-lucide="binoculars" class="empty-icon"></i>
+              <h3>관찰하신 새를 알려주세요</h3>
+              <p>왼쪽에서 사진을 업로드하거나 특징을 설명한 후 검색을 누르시면, 도감 매칭 분석 결과가 여기에 표시됩니다.</p>
+            </div>
+
+            <!-- Loader State -->
+            <div class="loader-state hidden" id="result-loader-state">
+              <div class="spinner-container">
+                <div class="double-bounce1"></div>
+                <div class="double-bounce2"></div>
+              </div>
+              <h3>Gemini AI가 도감 매칭 분석 중...</h3>
+              <p class="loader-status-text">입력하신 데이터를 정밀 분석하고 있으며, 인터넷 지식 및 한국어 공용 명칭을 조사하고 있습니다.</p>
+              <div class="skeleton-list">
+                <div class="skeleton-item"></div>
+                <div class="skeleton-item"></div>
+                <div class="skeleton-item"></div>
+              </div>
+            </div>
+
+            <!-- Result Content Container -->
+            <div class="result-content hidden" id="result-content-area">
+              
+              <!-- Match Summary Panel -->
+              <div class="match-badge-panel" id="result-badge-panel">
+                <!-- Will be dynamically updated -->
+              </div>
+
+              <!-- Bird Details View -->
+              <div class="result-details">
+                <div class="result-header-row">
+                  <div>
+                    <h3 class="result-names">
+                      <span class="eng-name" id="res-eng-name">Common Name</span>
+                      <span class="maori-name" id="res-maori-name">(Māori Name)</span>
+                    </h3>
+                    <p class="sci-name" id="res-sci-name">Scientific Name</p>
+                  </div>
+                  <div class="korean-name-box" id="res-korean-box">
+                    <span class="ko-label">한국어 이름</span>
+                    <span class="ko-val" id="res-korean-name">한국어 이름</span>
+                  </div>
+                </div>
+
+                <div class="info-section">
+                  <h4 class="info-title"><i data-lucide="info"></i> 신체 특징 및 묘사</h4>
+                  <p id="res-description" class="info-text">설명 정보가 로드됩니다.</p>
+                </div>
+
+                <div class="info-grid">
+                  <div class="info-section">
+                    <h4 class="info-title"><i data-lucide="map-pin"></i> 서식지</h4>
+                    <p id="res-habitat" class="info-text">서식지 정보</p>
+                  </div>
+                  <div class="info-section">
+                    <h4 class="info-title"><i data-lucide="activity"></i> 행동 패턴</h4>
+                    <p id="res-behavior" class="info-text">행동 정보</p>
+                  </div>
+                </div>
+
+                <!-- Book source if matched -->
+                <div class="book-reference-panel" id="res-book-reference">
+                  <div class="ref-icon">
+                    <i data-lucide="book"></i>
+                  </div>
+                  <div>
+                    <span class="ref-title">도감 출처</span>
+                    <span class="ref-desc" id="res-book-source">도감의 몇 페이지 혹은 정보 출처</span>
+                  </div>
+                </div>
+
+                <!-- AI Web Supplement Information -->
+                <div class="ai-supplement-panel hidden" id="res-ai-supplement">
+                  <div class="sup-header">
+                    <i data-lucide="globe"></i>
+                    <span>AI 추가 분석 및 인터넷 보완 정보</span>
+                  </div>
+                  <p id="res-web-info" class="sup-text">웹 검색 보완 정보</p>
+                </div>
+
+                <!-- iNaturalist Photos -->
+                <div class="api-section hidden" id="res-inaturalist">
+                  <h4 class="info-title"><i data-lucide="image"></i> iNaturalist 실시간 관찰 사진</h4>
+                  <div class="inaturalist-gallery" id="res-inaturalist-gallery">
+                    <!-- Dynamically populated -->
+                  </div>
+                </div>
+
+                <!-- eBird Sightings -->
+                <div class="api-section hidden" id="res-ebird">
+                  <h4 class="info-title"><i data-lucide="map"></i> eBird 뉴질랜드 실시간 목격 위치</h4>
+                  <ul class="ebird-sightings-list" id="res-ebird-sightings">
+                    <!-- Dynamically populated -->
+                  </ul>
+                </div>
+
+                <!-- External Search / DB Links -->
+                <div class="external-links-panel" id="res-external-links">
+                  <h4 class="info-title"><i data-lucide="external-link"></i> 외부 전문 도감 연동</h4>
+                  <div class="link-buttons">
+                    <a href="#" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" id="link-nz-birds-online">
+                      <i data-lucide="external-link"></i>
+                      <span>NZ Birds Online 검색</span>
+                    </a>
+                    <a href="#" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" id="link-wikipedia">
+                      <i data-lucide="search"></i>
+                      <span>Wikipedia (한글) 검색</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= MY BOOK TAB ================= -->
+      <section id="tab-my-book" class="tab-content">
+        <div class="my-book-header">
+          <div class="stats-box">
+            <span class="stats-label">등록된 도감 조류</span>
+            <span class="stats-num" id="book-count-badge">0종</span>
+          </div>
+          <div class="action-buttons">
+            <button class="btn btn-secondary" id="import-btn">
+              <i data-lucide="upload"></i>
+              <span>가져오기</span>
+            </button>
+            <button class="btn btn-secondary" id="export-btn">
+              <i data-lucide="download"></i>
+              <span>내보내기</span>
+            </button>
+            <button class="btn btn-primary" id="add-bird-btn">
+              <i data-lucide="plus"></i>
+              <span>도감 등록</span>
+            </button>
+          </div>
+          <input type="file" id="import-input" accept=".json" class="hidden">
+        </div>
+
+        <!-- Bird Cards Grid -->
+        <div class="birds-grid" id="birds-grid-container">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- ================= SETTINGS TAB ================= -->
+      <section id="tab-settings" class="tab-content">
+        <div class="settings-card card">
+          <h2 class="section-title">
+            <i data-lucide="settings"></i>
+            <span>애플리케이션 설정</span>
+          </h2>
+          <p class="section-subtitle">AI 검색 및 분석에 사용될 구글 Gemini API 정보를 설정합니다.</p>
+
+          <form id="settings-form">
+            <!-- API Key Group -->
+            <div class="form-group">
+              <div class="label-with-link">
+                <label for="api-key-input" class="form-label">Gemini API Key</label>
+                <a href="https://aistudio.google.com/" target="_blank" rel="noopener" class="help-link">API Key 발급받기 <i data-lucide="external-link"></i></a>
+              </div>
+              <div class="api-key-container">
+                <input type="password" id="api-key-input" placeholder="AI Studio에서 발급받은 API 키를 입력하세요">
+                <button type="button" class="toggle-password-btn" id="toggle-api-key-btn">
+                  <i data-lucide="eye" id="toggle-key-icon"></i>
+                </button>
+              </div>
+              <p class="input-helper">입력하신 API 키는 브라우저 내부 스토리지(localStorage)에만 안전하게 저장되며 외부 서버로 무단 전송되지 않습니다.</p>
+            </div>
+
+            <!-- Model Selection Group -->
+            <div class="form-group">
+              <label for="model-select" class="form-label">Gemini 모델 선택</label>
+              <select id="model-select" class="form-select">
+                <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (권장: 속도 및 가성비 우수)</option>
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash (구버전 호환)</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro (높은 분석력, 속도 다소 느림)</option>
+              </select>
+            </div>
+
+            <!-- eBird Token Group -->
+            <div class="form-group">
+              <div class="label-with-link">
+                <label for="ebird-token-input" class="form-label">eBird API Token (선택)</label>
+                <a href="https://ebird.org/api/keygen" target="_blank" rel="noopener" class="help-link">eBird 토큰 발급받기 <i data-lucide="external-link"></i></a>
+              </div>
+              <input type="password" id="ebird-token-input" placeholder="eBird API 토큰을 입력하세요 (뉴질랜드 실시간 목격 조회용)">
+              <p class="input-helper">eBird 토큰을 설정하시면 새를 식별했을 때 해당 새의 뉴질랜드 내 최근 실제 관찰 보고 위치 목록(최근 30일)을 조회하여 지명과 날짜를 띄워줍니다.</p>
+            </div>
+
+            <!-- Status Indicator -->
+            <div class="connection-status-panel" id="status-panel">
+              <div class="status-indicator not-configured" id="status-dot"></div>
+              <div class="status-info">
+                <h4 id="status-title">API 키 설정 필요</h4>
+                <p id="status-desc">Gemini API Key를 입력하고 저장해 주세요.</p>
+              </div>
+            </div>
+
+            <div class="settings-actions">
+              <button type="button" class="btn btn-secondary" id="test-connection-btn">
+                <i data-lucide="activity"></i>
+                <span>연결 테스트</span>
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i data-lucide="save"></i>
+                <span>설정 저장하기</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ================= ADD/EDIT BIRD MODAL ================= -->
+  <div class="modal-overlay" id="bird-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-title">새로운 도감 새 등록</h3>
+        <button class="close-btn" id="close-modal-btn">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <form id="bird-form">
+        <input type="hidden" id="bird-id">
+        
+        <div class="form-row-2">
+          <!-- English Name -->
+          <div class="form-group">
+            <label for="bird-eng-name" class="form-label required">영어 이름 (English Name)</label>
+            <input type="text" id="bird-eng-name" placeholder="예: Fantail" required>
+          </div>
+          <!-- Maori Name -->
+          <div class="form-group">
+            <label for="bird-maori-name" class="form-label">마오리 이름 (Māori Name)</label>
+            <input type="text" id="bird-maori-name" placeholder="예: Pīwakawaka">
+          </div>
+        </div>
+
+        <div class="form-row-3">
+          <!-- Scientific Name -->
+          <div class="form-group">
+            <label for="bird-sci-name" class="form-label">학명 (Scientific Name)</label>
+            <input type="text" id="bird-sci-name" placeholder="예: Rhipidura fuliginosa">
+          </div>
+          <!-- Size -->
+          <div class="form-group">
+            <label for="bird-size" class="form-label">크기 (Size)</label>
+            <input type="text" id="bird-size" placeholder="예: 16 cm">
+          </div>
+          <!-- Korean Name -->
+          <div class="form-group">
+            <label for="bird-korean-name" class="form-label">한국어 이름</label>
+            <input type="text" id="bird-korean-name" placeholder="예: 부채꼬리딱새">
+          </div>
+        </div>
+        
+        <p class="input-helper form-helper-text">
+          <i data-lucide="info"></i> 한국어 이름은 사전에 등재되거나 국내 조류 도감 등에서 <strong>실제 부르는 명칭</strong>이 있을 때만 기재해 주세요. (없다면 공란으로 비워두세요)
+        </p>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="bird-desc" class="form-label required">외모 묘사 및 특징 (Description)</label>
+          <textarea id="bird-desc" rows="3" placeholder="예: 작은 갈색 몸통에 넓게 펼쳐지는 부채꼴 꼬리를 가지고 있음. 배 부위는 노란 오렌지 빛임." required></textarea>
+        </div>
+
+        <div class="form-row-2">
+          <!-- Habitat -->
+          <div class="form-group">
+            <label for="bird-habitat" class="form-label">주요 서식지 (Habitat)</label>
+            <input type="text" id="bird-habitat" placeholder="예: 숲, 정원, 관목림">
+          </div>
+          <!-- Behavior -->
+          <div class="form-group">
+            <label for="bird-behavior" class="form-label">행동 및 특징 (Behavior)</label>
+            <input type="text" id="bird-behavior" placeholder="예: 공중에서 현란하게 회전하며 곤충을 잡음, 사람을 잘 따름">
+          </div>
+        </div>
+
+        <!-- Book Source -->
+        <div class="form-group">
+          <label for="bird-source" class="form-label">책 페이지 / 출처 (Source Page)</label>
+          <input type="text" id="bird-source" placeholder="예: 뉴질랜드 새 도감 p.84">
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancel-modal-btn">취소</button>
+          <button type="submit" class="btn btn-primary" id="save-bird-btn">도감 저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

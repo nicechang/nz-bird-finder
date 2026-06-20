@@ -1,0 +1,80 @@
+[
+  {
+    "id": "nz-bird-kiwi",
+    "englishName": "Kiwi",
+    "maoriName": "Kiwi",
+    "scientificName": "Apteryx",
+    "size": "35 - 45 cm",
+    "koreanName": "키위",
+    "hasKoreanName": true,
+    "description": "Flightless nocturnal bird with hair-like plumage, a very long slender beak, and nostrils situated at the tip of the beak. It has no visible wings and is the national symbol of New Zealand.",
+    "habitat": "Native forests, scrublands, and forest edges.",
+    "behavior": "Shy, nocturnal, and highly territorial. Uses its keen sense of smell to probe the soil for invertebrates, insects, worms, and fallen fruit.",
+    "sourceBookPage": "Pre-loaded Database"
+  },
+  {
+    "id": "nz-bird-kea",
+    "englishName": "Kea",
+    "maoriName": "Kea",
+    "scientificName": "Nestor notabilis",
+    "size": "48 cm",
+    "koreanName": "케아",
+    "hasKoreanName": true,
+    "description": "The world's only alpine parrot. Large, olive-green body with a curved grey beak and striking, brilliant orange-red plumage under its wings that is visible when flying.",
+    "habitat": "Alpine and sub-alpine environments, high-country forests, and rocky outcrops.",
+    "behavior": "Famous for its extreme curiosity, intelligence, and playfulness. Highly social birds that investigate ski fields, cars, backpacks, and snowboards.",
+    "sourceBookPage": "Pre-loaded Database"
+  },
+  {
+    "id": "nz-bird-tui",
+    "englishName": "Tui",
+    "maoriName": "Tūī",
+    "scientificName": "Prosthemadera novaeseelandiae",
+    "size": "30 cm",
+    "koreanName": "투이",
+    "hasKoreanName": true,
+    "description": "Medium-sized bird with dark, glossy blue-green feathers that appear black from a distance, showing iridescent green and bronze under direct light. Features a distinctive white tuft of curled feathers on its throat.",
+    "habitat": "Native forests, coastal scrub, urban parks, and domestic gardens.",
+    "behavior": "Extremely vocal with a complex, loud song consisting of whistles, clicks, cackle, and mimicry. Aggressively territorial, feeding on nectar, berries, and insects.",
+    "sourceBookPage": "Pre-loaded Database"
+  },
+  {
+    "id": "nz-bird-kakapo",
+    "englishName": "Kakapo",
+    "maoriName": "Kākāpō",
+    "scientificName": "Strigops habroptilus",
+    "size": "60 cm",
+    "koreanName": "카카포",
+    "hasKoreanName": true,
+    "description": "The largest, heaviest, and only flightless parrot in the world. Moss-green plumage mottled with yellow and black, offering excellent camouflage. Has a flat, owl-like face.",
+    "habitat": "Confined to heavily managed predator-free offshore island sanctuaries.",
+    "behavior": "Nocturnal, solitary, and herbivorous. Males gather at lek arenas to make deep, booming calls that resonate across long distances to attract females. Climbs trees using its strong legs and beak.",
+    "sourceBookPage": "Pre-loaded Database"
+  },
+  {
+    "id": "nz-bird-fantail",
+    "englishName": "Fantail",
+    "maoriName": "Pīwakawaka",
+    "scientificName": "Rhipidura fuliginosa",
+    "size": "16 cm",
+    "koreanName": "부채꼬리딱새",
+    "hasKoreanName": true,
+    "description": "Small, extremely active bird with a prominent fan-like tail. Upper parts are grey-brown, underparts are light buff/cinnamon, with white throat and brow markings.",
+    "habitat": "Broadleaf forests, dense scrublands, home gardens, and orchards.",
+    "behavior": "Performs sudden, erratic aerial loops and rolls to capture flying insects. Bold and inquisitive, often following humans or cattle to catch insects stirred up by their movement.",
+    "sourceBookPage": "Pre-loaded Database"
+  },
+  {
+    "id": "nz-bird-pukeko",
+    "englishName": "Pukeko",
+    "maoriName": "Pūkeko",
+    "scientificName": "Porphyrio melanotus",
+    "size": "51 cm",
+    "koreanName": "자색쇠물닭",
+    "hasKoreanName": true,
+    "description": "Large, deep blue-purple swamp hen with a black back, a prominent red frontal shield above a thick red triangular bill, and long orange-red legs with slender toes.",
+    "habitat": "Wetlands, marshes, swamps, pasture edges, and grassy roadside verges.",
+    "behavior": "Highly social, nesting in groups. Feeds mainly on soft plant shoots, but will also eat insects, frogs, small fish, and eggs. Known for flicking its tail, showing white undertail feathers, when alert.",
+    "sourceBookPage": "Pre-loaded Database"
+  }
+]
